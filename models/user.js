@@ -1,42 +1,47 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    username : {
-        type : String,
-        required : true,
-        unique : true
-    },
-    email :{
-        type : String,
-        required : true,
-        unique : true
-    }, 
-    password :{
-        type : String,
-        required : true
-    }, 
-    birthDate: Date,
-    fullname : String, 
-    role : {
-        type : String,
-        default : "USER", 
-        validate : function(role){
-            return role == "ADMIN" || role == "USER"
-        }
-    },
-    createdAt : Date,
-    cartId : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref: "Cart"
-    },
-    imgUrl : String 
-}) 
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    trim: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  fullName: {
+    type: String,
+    trim: true
+  },
+  birthDate: {
+    type: Date
+  },
+  role: {
+    type: String,
+    enum: ["USER", "ADMIN"],
+    default: "USER"
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  cartId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cart"
+  },
+  profileImage: {
+    type: String,
+    trim: true
+  }
+});
 
-userSchema.pre("save", function(next){
-    if (!this.createdAt){
-        this.createdAt = Date.now()
-    }
-    next()
-})
-
-export default new mongoose.model("User", userSchema)
+export default mongoose.model("User", userSchema);

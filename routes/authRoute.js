@@ -1,31 +1,42 @@
-import express from "express"
-import User from "../models/user.js"
+import express from "express";
+import User from "../models/user.js";
 
-const route = express.Router()
+const route = express.Router();
 
-route.post("/login", async (req, res)=> {
-    try{
-        const{ username, email, password} = req.body;
+// 🔐 Connexion utilisateur
+route.post("/login", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
 
-        if(email){
-            var user = await User.findOne({email, password})
-        }else if(username) {
-            var user = await User.findOne({username, password})
-        }else{
-            return res.status(403).send("Invalid credentials!")
-        }
-        
-        if(user){
-            res.json(user)
-        } else {
-            res.status(403).send("Invalid credentials!")
-        }
+    let user;
 
-    }catch (err) {
-        console.error(err)
-        res.status(500).json(err) 
+    if (email) {
+      user = await User.findOne({ email });
+    } else if (username) {
+      user = await User.findOne({ username });
+    } else {
+      return res.status(400).json({ message: "Identifiants manquants." });
     }
-})
 
+    if (!user) {
+      return res.status(403).json({ message: "Utilisateur introuvable." });
+    }
 
-export default route
+    // Ici, tu peux comparer avec bcrypt si les mots de passe sont hashés
+    if (user.password !== password) {
+      return res.status(403).json({ message: "Mot de passe incorrect." });
+    }
+
+    // Connexion réussie
+    res.json({
+      message: `Bienvenue ${user.fullName || user.username} chez Zinzawa 🌞`,
+      user
+    });
+
+  } catch (err) {
+    console.error("Erreur lors de la connexion :", err);
+    res.status(500).json({ message: "Une erreur est survenue côté serveur." });
+  }
+});
+
+export default route;

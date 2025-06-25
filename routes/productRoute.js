@@ -1,65 +1,83 @@
 import express from "express";
-import Product from "../models/product.js"
+import Product from "../models/product.js";
 
-const route = express.Router()
+const route = express.Router();
 
+// 🌿 Obtenir tous les produits (avec filtres possibles via req.query)
 route.get("/", async (req, res) => {
-    try{
-        const products = await Product.find(req.query);
-        if(products.length == 0) return res.status(404).send("No products yet!");
-        res.json(products);    
-    } catch (err) {
-        console.error(err)
-        res.status(500).json(err) 
+  try {
+    const products = await Product.find(req.query);
+    if (products.length === 0) {
+      return res.status(404).json({ message: "Aucun vêtement n’est disponible pour le moment 🌿" });
     }
-}); 
+    res.json(products);
+  } catch (err) {
+    console.error("Erreur lors du fetch des produits :", err);
+    res.status(500).json({ message: "Erreur serveur lors du chargement des produits." });
+  }
+});
 
+// 🌊 Obtenir un produit par ID
 route.get("/:id", async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).send("product not found");
-        res.json(product);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json(err);
-    }
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Produit introuvable 🧵" });
+    res.json(product);
+  } catch (err) {
+    console.error("Erreur lors du fetch du produit :", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
 });
 
-route.post("/", async(req, res) => {
-    try{
-        const newProd = new Product(req.body)
-        await newProd.save()
-        res.send("Product created successfully!")
-    }catch (err) {
-        console.error(err);
-        res.status(500).json(err);
-    }
+// 🧵 Ajouter un nouveau produit (admin ou artisan)
+route.post("/", async (req, res) => {
+  try {
+    const newProd = new Product(req.body);
+    await newProd.save();
+    res.status(201).json({
+      message: "Nouveau vêtement ajouté à la collection Zinzawa 🧺",
+      product: newProd
+    });
+  } catch (err) {
+    console.error("Erreur lors de la création d’un produit :", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
 });
 
+// ✨ Modifier un produit existant
 route.put("/:id", async (req, res) => {
-    try{
-         const updatedProduct = await Product.findByIdAndUpdate(req.params.id, req.body, { new : true })
-         if(!updatedProduct) return res.status(404).send("Product not found!")
-         res.send("Product updated successfully")
-    }catch (err) {
-        console.error(err)
-        res.status(500).json(err) 
+  try {
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Produit non trouvé" });
     }
-}); 
-
-
-route.delete("/:id", async (req, res) => {
-    try{
-        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-        if (!deletedProduct) return res.status(404).send("Product not found!");
-        res.send("Product deleted successfully!");
-        
-    }catch (err) {
-        console.error(err)
-        res.status(500).json(err) 
-    }
-
+    res.json({
+      message: "Produit mis à jour avec succès ✨",
+      product: updatedProduct
+    });
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour :", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
 });
 
-export default route 
+// ❌ Supprimer un produit
+route.delete("/:id", async (req, res) => {
+  try {
+    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
+    if (!deletedProduct) {
+      return res.status(404).json({ message: "Produit introuvable" });
+    }
+    res.json({ message: "Produit supprimé avec succès 🧼" });
+  } catch (err) {
+    console.error("Erreur lors de la suppression :", err);
+    res.status(500).json({ message: "Erreur serveur." });
+  }
+});
+
+export default route;
 
